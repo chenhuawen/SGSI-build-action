@@ -10,9 +10,9 @@ env:
   ROM_URL: https://www.coolapk.com/link?url=https%3A%2F%2Fwlansysupwsdl2.vivo.com.cn%2Fupgrade%2Frecovery%2FrecoveryFiles%2F20210129052426f2fde80674efdebabbe0ea6c7fc1ecc1.zip
 
   ZIP_NAME: origin.zip
-  OS_TYPE: origin
+  OS_TYPE: Generic
   BUILD_TYPE: 'ab'
-  REPACK_NAME: test_action.zip
+  REPACK_NAME: ORG.zip
   VERSION: 12
   upload_WeTransfer: 'true'
   upload_action-gh-release: 'false'
