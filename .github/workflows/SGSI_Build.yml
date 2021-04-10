@@ -7,9 +7,10 @@ on:
     types: [started]
     
 env:              
-  ROM_URL: https://dl.google.com/developers/android/sc/images/ota/redfin-ota-spp2.210219.008-3d61e529.zip
-  ZIP_NAME: test.zip
-  OS_TYPE: Pixel
+  ROM_URL: https://www.coolapk.com/link?url=https%3A%2F%2Fwlansysupwsdl2.vivo.com.cn%2Fupgrade%2Frecovery%2FrecoveryFiles%2F20210129052426f2fde80674efdebabbe0ea6c7fc1ecc1.zip
+
+  ZIP_NAME: origin.zip
+  OS_TYPE: origin
   BUILD_TYPE: 'ab'
   REPACK_NAME: test_action.zip
   VERSION: 12
