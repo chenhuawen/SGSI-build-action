@@ -13,7 +13,7 @@ env:
   OS_TYPE: MIUI
   BUILD_TYPE: 'ab'
   REPACK_NAME: miui12.5.zip
-  VERSION: 12
+  VERSION: 11
   upload_WeTransfer: 'true'
   upload_action-gh-release: 'false'
   SETUP: 'true'
