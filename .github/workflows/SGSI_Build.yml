@@ -7,12 +7,12 @@ on:
     types: [started]
     
 env:              
-  ROM_URL: https://www.coolapk.com/link?url=https%3A%2F%2Fwlansysupwsdl2.vivo.com.cn%2Fupgrade%2Frecovery%2FrecoveryFiles%2F20210129052426f2fde80674efdebabbe0ea6c7fc1ecc1.zip
+  ROM_URL: https://hugeota.d.miui.com/V12.1.1.0.RFJCNXM/miui_DAVINCI_V12.1.1.0.RFJCNXM_471ae2cf60_11.0.zip
 
-  ZIP_NAME: origin.zip
-  OS_TYPE: Generic
+  ZIP_NAME: miui12.zip
+  OS_TYPE: MIUI
   BUILD_TYPE: 'ab'
-  REPACK_NAME: ORG.zip
+  REPACK_NAME: miui12.5.zip
   VERSION: 12
   upload_WeTransfer: 'true'
   upload_action-gh-release: 'false'
