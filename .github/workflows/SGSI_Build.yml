@@ -11,7 +11,6 @@ env:
   ZIP_NAME: test.zip
   OS_TYPE: Flyme
   BUILD_TYPE: 'ab'
-  REPACK_NAME: test_action.zip
   VERSION: 11
   upload_WeTransfer: 'true'
   upload_action-gh-release: 'false'
