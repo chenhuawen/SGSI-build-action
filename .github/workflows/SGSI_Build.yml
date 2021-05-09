@@ -7,37 +7,29 @@ on:
     types: [started]
     
 env:              
-  ROM_URL: 'https://download.c.realme.com/osupdate/RMX1851_11_OTA_1130_all_iuygSyEV1LmI.ozip'
-  ZIP_NAME: 'update.zip'
-  OS_TYPE: 'Generic'
+  ROM_URL: https://download.meizu.com/Firmware/Flyme/meizu17_Pro/9.0.0.0/cn/20210430192838/b1c0c821/update.zip
+  ZIP_NAME: test.zip
+  OS_TYPE: Flyme
   BUILD_TYPE: 'ab'
-  REPACK_NAME: 'SGSI.zip'
-  VERSION: '10'
+  REPACK_NAME: test_action.zip
+  VERSION: 11
   upload_WeTransfer: 'true'
-  upload_action-gh-release: 'true'
+  upload_action-gh-release: 'false'
   SETUP: 'true'
   
 jobs:
   build:
     runs-on: ubuntu-latest
 
+
     steps:
        - name: Checkout
          uses: actions/checkout@main
        
-       - name: Clean Up
-         run: |       
-           docker rmi `docker images -q`
-           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
-           sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
-           sudo -E apt-get update
-           sudo -E apt-get -y autoremove --purge
-           sudo -E apt-get clean
-           df -h
            
        - name: Setting up the SPICES
          run: |
-            sudo apt-get install -y git wget git zip unzip curl axel
+            sudo apt-get install -y git openjdk-8-jdk wget git zip unzip curl
        - name: Cloning...
          run: |
              git clone https://github.com/xiaoxindada/SGSI-build-tool.git -b 12 $GITHUB_WORKSPACE/SGSI-build-tool
@@ -46,17 +38,13 @@ jobs:
          run: |
             cd $GITHUB_WORKSPACE/SGSI-build-tool
             mkdir ./tmp
-            axel -n $(nproc) -U "Mozilla/5.0" $ROM_URL -o "$GITHUB_WORKSPACE/SGSI-build-tool/tmp/$ZIP_NAME" || wget -U "Mozilla/5.0" $ROM_URL -O "$GITHUB_WORKSPACE/SGSI-build-tool/tmp/$ZIP_NAME"
-            echo "zip_file: $(ls "$GITHUB_WORKSPACE/SGSI-build-tool/tmp/")"
+            cd ./tmp
+            sudo wget $ROM_URL -O $ZIP_NAME && ls
             
        - name: Setup Tool Utils...
          if: env.SETUP == 'true'
          run: |
-            sudo sed -i 's/USE_MIRROR_FOR_PIP\=true/USE_MIRROR_FOR_PIP\=false/' $GITHUB_WORKSPACE/SGSI-build-tool/setup.sh
             sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/setup.sh
-            sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
-            java -version
-            
        - name: Building AB DEVICES SGSI...
          if: env.BUILD_TYPE == 'AB' || env.BUILD_TYPE == 'ab'
          run: |
@@ -64,7 +52,7 @@ jobs:
        - name: Building A-only DEVICES SGSI...
          if: env.BUILD_TYPE == 'a-only'
          run: |
-            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/make.sh --a-only $OS_TYPE $ZIP_NAME --fix-bug     
+            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/make.sh --a-only $OS_TYPE $ZIP_NAME --fix-bug            
        - name: Repack output file ...
          run: |            
              cd $GITHUB_WORKSPACE/SGSI-build-tool
