@@ -40,20 +40,20 @@ jobs:
             sudo apt-get install -y git wget git zip unzip curl axel
        - name: Cloning...
          run: |
-             git clone https://github.com/xiaoxindada/SGSI-build-tool.git -b 11 $GITHUB_WORKSPACE/SGSI-build-tool
+             git clone https://github.com/xiaoxindada/SGSI-build-tool.git -b 11-17 $GITHUB_WORKSPACE/SGSI-build-tool-11
            
        - name: Download zip...
          run: |
-            cd $GITHUB_WORKSPACE/SGSI-build-tool
+            cd $GITHUB_WORKSPACE/SGSI-build-tool-11
             mkdir ./tmp
-            axel -n $(nproc) -U "Mozilla/5.0" $ROM_URL -o "$GITHUB_WORKSPACE/SGSI-build-tool/tmp/$ZIP_NAME" || wget -U "Mozilla/5.0" $ROM_URL -O "$GITHUB_WORKSPACE/SGSI-build-tool/tmp/$ZIP_NAME"
-            echo "zip_file: $(ls "$GITHUB_WORKSPACE/SGSI-build-tool/tmp/")"
+            axel -n $(nproc) -U "Mozilla/5.0" $ROM_URL -o "$GITHUB_WORKSPACE/SGSI-build-tool-11/tmp/$ZIP_NAME" || wget -U "Mozilla/5.0" $ROM_URL -O "$GITHUB_WORKSPACE/SGSI-build-tool-11/tmp/$ZIP_NAME"
+            echo "zip_file: $(ls "$GITHUB_WORKSPACE/SGSI-build-tool-11/tmp/")"
             
        - name: Setup Tool Utils...
          if: env.SETUP == 'true'
          run: |
-            sudo sed -i 's/USE_MIRROR_FOR_PIP\=true/USE_MIRROR_FOR_PIP\=false/' $GITHUB_WORKSPACE/SGSI-build-tool/setup.sh
-            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/setup.sh
+            sudo sed -i 's/USE_MIRROR_FOR_PIP\=true/USE_MIRROR_FOR_PIP\=false/' $GITHUB_WORKSPACE/SGSI-build-tool-11/setup.sh
+            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool-11/setup.sh
             sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
             java -version
             
@@ -74,7 +74,7 @@ jobs:
        - name: Upload SGSI to WeTransfer...
          if: env.upload_WeTransfer == 'true' 
          run: |
-           cd $GITHUB_WORKSPACE/SGSI-build-tool
+           cd $GITHUB_WORKSPACE/SGSI-build-tool-11
            pwd
            ls "$REPACK_NAME"
            curl -sL https://git.io/file-transfer | sh
@@ -83,7 +83,7 @@ jobs:
          if: env.upload_action-gh-release == 'true'
          uses: softprops/action-gh-release@v1
          with:
-           files: ${{ github.workspace }}/SGSI-build-tool/${{ env.REPACK_NAME }}
+           files: ${{ github.workspace }}/SGSI-build-tool-11/${{ env.REPACK_NAME }}
            name: xiaoxinSGSI-${{ env.OS_TYPE }}-${{ env.BUILD_TYPE }}-Android${{ env.VERSION }}-unpack
            tag_name: 11
            #body: Use actions auto bulid
