@@ -40,20 +40,20 @@ jobs:
             sudo apt-get install -y git wget git zip unzip curl axel
        - name: Cloning...
          run: |
-             git clone https://github.com/xiaoxindada/SGSI-build-tool.git -b $GITHUB_WORKSPACE/SGSI-build-tool-11
+             git clone https://github.com/xiaoxindada/SGSI-build-tool.git -b 12 $GITHUB_WORKSPACE/SGSI-build-tool-12
            
        - name: Download zip...
          run: |
-            cd $GITHUB_WORKSPACE/SGSI-build-tool-11
+            cd $GITHUB_WORKSPACE/SGSI-build-tool-12
             mkdir ./tmp
-            axel -n $(nproc) -U "Mozilla/5.0" $ROM_URL -o "$GITHUB_WORKSPACE/SGSI-build-tool-11/tmp/$ZIP_NAME" || wget -U "Mozilla/5.0" $ROM_URL -O "$GITHUB_WORKSPACE/SGSI-build-tool-11/tmp/$ZIP_NAME"
-            echo "zip_file: $(ls "$GITHUB_WORKSPACE/SGSI-build-tool-11/tmp/")"
+            axel -n $(nproc) -U "Mozilla/5.0" $ROM_URL -o "$GITHUB_WORKSPACE/SGSI-build-tool-12/tmp/$ZIP_NAME" || wget -U "Mozilla/5.0" $ROM_URL -O "$GITHUB_WORKSPACE/SGSI-build-tool-12/tmp/$ZIP_NAME"
+            echo "zip_file: $(ls "$GITHUB_WORKSPACE/SGSI-build-tool-12/tmp/")"
             
        - name: Setup Tool Utils...
          if: env.SETUP == 'true'
          run: |
-            sudo sed -i 's/USE_MIRROR_FOR_PIP\=true/USE_MIRROR_FOR_PIP\=false/' $GITHUB_WORKSPACE/SGSI-build-tool-11/setup.sh
-            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool-11/setup.sh
+            sudo sed -i 's/USE_MIRROR_FOR_PIP\=true/USE_MIRROR_FOR_PIP\=false/' $GITHUB_WORKSPACE/SGSI-build-tool-12/setup.sh
+            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool-12/setup.sh
             sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
             java -version
             
@@ -67,14 +67,14 @@ jobs:
             sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/make.sh --a-only $OS_TYPE $ZIP_NAME --fix-bug     
        - name: Repack output file ...
          run: |            
-             cd $GITHUB_WORKSPACE/SGSI-build-tool
+             cd $GITHUB_WORKSPACE/SGSI-build-tool-12
              pwd
              zip -r $REPACK_NAME ./SGSI/*
              ls "$REPACK_NAME"
        - name: Upload SGSI to WeTransfer...
          if: env.upload_WeTransfer == 'true' 
          run: |
-           cd $GITHUB_WORKSPACE/SGSI-build-tool-11
+           cd $GITHUB_WORKSPACE/SGSI-build-tool-12
            pwd
            ls "$REPACK_NAME"
            curl -sL https://git.io/file-transfer | sh
@@ -83,9 +83,9 @@ jobs:
          if: env.upload_action-gh-release == 'true'
          uses: softprops/action-gh-release@v1
          with:
-           files: ${{ github.workspace }}/SGSI-build-tool-11/${{ env.REPACK_NAME }}
+           files: ${{ github.workspace }}/SGSI-build-tool-12/${{ env.REPACK_NAME }}
            name: xiaoxinSGSI-${{ env.OS_TYPE }}-${{ env.BUILD_TYPE }}-Android${{ env.VERSION }}-unpack
-           tag_name: 11
+           tag_name: 12
            #body: Use actions auto bulid
          env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
