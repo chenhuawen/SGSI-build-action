@@ -1,79 +1,74 @@
-# This is a basic workflow to help you get started with Actions
-
 name: SGSI_Build
 
 on:
   watch:
     types: [started]
-    
-env:              
-  ROM_URL: https://hugeota.d.miui.com/V13.0.4.0.SLDCNXM/miui_PSYCHE_V13.0.4.0.SLDCNXM_b659da9358_12.0.zip
-  ZIP_NAME: test.zip
-  OS_TYPE: MIUI
-  BUILD_TYPE: 'AB'
-  REPACK_NAME: SGSI.zip
-  VERSION: 11
-  upload_WeTransfer: 'true'
-  upload_action-gh-release: 'false'
-  SETUP: 'true'
-  
+
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-20.04
 
     steps:
-       - name: Checkout
-         uses: actions/checkout@main
-       
-           
-       - name: Setting up the SPICES
-         run: |
-            sudo apt-get install -y git openjdk-8-jdk wget git zip unzip curl
-       - name: Cloning...
-         run: |
-             git clone https://github.com/xiaoxindada/SGSI-build-tool.git -b 12 $GITHUB_WORKSPACE/SGSI-build-tool
-           
-       - name: Download zip...
-         run: |
-            cd $GITHUB_WORKSPACE/SGSI-build-tool
-            mkdir ./tmp
-            cd ./tmp
-            sudo wget $ROM_URL -O $ZIP_NAME && ls
-            
-       - name: Setup Tool Utils...
-         if: env.SETUP == 'true'
-         run: |
-            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/setup.sh
-       - name: Building AB DEVICES SGSI...
-         if: env.BUILD_TYPE == 'AB' || env.BUILD_TYPE == 'ab'
-         run: |
-            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/make.sh --AB $OS_TYPE $ZIP_NAME --fix-bug
-       - name: Building A-only DEVICES SGSI...
-         if: env.BUILD_TYPE == 'a-only'
-         run: |
-            sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/make.sh --a-only $OS_TYPE $ZIP_NAME --fix-bug            
-       - name: Repack output file ...
-         run: |            
-             cd $GITHUB_WORKSPACE/SGSI-build-tool
-             pwd
-              zip -r SGSI.zip . -i ./SGSI/*
-             ls "$REPACK_NAME"
-       - name: Upload SGSI to WeTransfer...
-         if: env.upload_WeTransfer == 'true' 
-         run: |
-           cd $GITHUB_WORKSPACE/SGSI-build-tool
-           pwd
-           ls "$REPACK_NAME"
-           curl -sL https://git.io/file-transfer | sh
-           ./transfer wet ./$REPACK_NAME
-       - name: Upload SGSI to action-gh-release...
-         if: env.upload_action-gh-release == 'true'
-         uses: softprops/action-gh-release@v1
-         with:
-           files: ${{ github.workspace }}/SGSI-build-tool/${{ env.REPACK_NAME }}
-           name: xiaoxinSGSI-${{ env.OS_TYPE }}-${{ env.BUILD_TYPE }}-Android${{ env.VERSION }}-unpack
-           tag_name: 12
-           #body: Use actions auto bulid
-         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Load Configuration
+        uses: falti/dotenv-action@v0.2.5
+        id: config
+        with:
+          path: config.env
+
+      - name: Check Configuration
+        run: |
+          function required () { if ! [[ "$1" ]]; then echo "$2 variable can't be null." && exit 1; fi }
+          required "${{ steps.config.outputs.rom_url }}" "ROM_URL config"
+          required "${{ steps.config.outputs.build_type }}" "BUILD_TYPE config"
+          required "${{ steps.config.outputs.os_type }}" "OS_TYPE config"
+          required "${{ steps.config.outputs.zip_name }}" "ZIP_NAME config"
+          required "${{ steps.config.outputs.version }}" "VERSION config"
+          required "${{ steps.config.outputs.repack_name }}" "REPACK_NAME config"
+      - name: Cleanup workspace
+        run: |
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+          sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox* google* dotnet* powershell openjdk* php*
+          sudo -E apt-get update
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          df -h
+      - name: Initializing Environment
+        run: |
+          sudo apt-get install -y git wget git zip unzip curl axel
+      - name: Cloning SGSI source code
+        run: |
+          git clone --recurse-submodules https://github.com/xiaoxindada/SGSI-build-tool.git -b 12 $GITHUB_WORKSPACE/SGSI-build-tool
+      - name: Setup sGSI tools requirements
+        run: |
+          sudo sed -i 's/USE_MIRROR_FOR_PIP\=true/USE_MIRROR_FOR_PIP\=false/' $GITHUB_WORKSPACE/SGSI-build-tool/setup.sh
+          sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/setup.sh
+        # sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
+        # java -version
+
+      - name: Build SGSI
+        run: |
+          sudo bash $GITHUB_WORKSPACE/SGSI-build-tool/url2SGSI.sh "${{ steps.config.outputs.rom_url }}" "${{ steps.config.outputs.os_type }}" "${{ steps.config.outputs.build_type }}"
+      - name: Repack Output File
+        run: |
+          cd $GITHUB_WORKSPACE/SGSI-build-tool
+          mkdir -p upload
+          zip -r ${{ steps.config.outputs.repack_name }} ./SGSI/*
+          if [[ $(du -sb "${{ steps.config.outputs.repack_name }}" | awk '{print $1}') -gt 2097152000 ]];then
+              echo -e "split packaging..."
+              tar -cpzf - "${{ steps.config.outputs.repack_name }}" | split -d -b 1024m - "upload/${{ steps.config.outputs.repack_name }}"
+          else
+              mv "${{ steps.config.outputs.repack_name }}" "upload/${{ steps.config.outputs.repack_name }}"
+          fi
+          ls "upload"
+      - name: Upload SGSI to GH-Release
+        uses: ncipollo/release-action@v1.8.6
+        with:
+          artifacts: ${{ github.workspace }}/SGSI-build-tool/upload/*
+          name: "${{ steps.config.outputs.os_type }}${{ steps.config.outputs.build_type }}-Android${{ steps.config.outputs.version }}-unpack"
+          tag: "${{ steps.config.outputs.os_type }}${{ steps.config.outputs.build_type }}-${{ steps.config.outputs.version }}-${{ github.run_number }}"
+          bodyFile: "${{ github.workspace}}/SGSI-build-tool/SGSI/build_info.txt"
+          token: ${{ secrets.GITHUB_TOKEN }}
